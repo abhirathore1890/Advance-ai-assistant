@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sia AI - Ultra Pro Assistant</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body onload="initSia()">
+    <div id="chat-container">
+        <div id="chat-header">
+            <h2>SIA AI</h2>
+            <small id="status">Online | 'Hey Sia' Active</small>
+        </div>
+        <div id="chat">
+            <p class="bot">नमस्ते! मैं Sia हूँ। आप 'Hey Sia' बोलकर या बटन दबाकर मुझसे बात कर सकते हैं।</p>
+        </div>
+        <div id="input-area">
+            <input type="text" id="input" placeholder="Type something magic..." autocomplete="off" onkeypress="if(event.key === 'Enter') sendMessage()">
+            <button onclick="sendMessage()" id="send-btn">🚀</button>
+            <button id="voice-btn" onclick="startManualVoice()">🎙️</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
