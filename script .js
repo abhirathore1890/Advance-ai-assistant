@@ -1,79 +1,105 @@
-// Assistant Data
+// 1. Links ki Dictionary
 const assistantData = {
     "youtube": "https://youtube.com", "facebook": "https://facebook.com", "instagram": "https://instagram.com",
-    "whatsapp": "https://web.whatsapp.com", "gmail": "https://mail.google.com", "github": "https://github.com"
+    "twitter": "https://twitter.com", "linkedin": "https://linkedin.com", "whatsapp": "https://web.whatsapp.com",
+    "snapchat": "https://snapchat.com", "reddit": "https://reddit.com", "pinterest": "https://pinterest.com",
+    "gmail": "https://mail.google.com", "drive": "https://drive.google.com", "maps": "https://maps.google.com",
+    "calendar": "https://calendar.google.com", "photos": "https://photos.google.com", "amazon": "https://amazon.in",
+    "flipkart": "https://flipkart.com", "wikipedia": "https://wikipedia.org", "github": "https://github.com"
 };
 
 const chat = document.getElementById("chat");
-const inputField = document.getElementById("input");
-const voiceBtn = document.getElementById("voice-btn");
-const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
 
-function addMessage(text, cls, isImage = false) {
-    let msg = isImage ? document.createElement("img") : document.createElement("p");
-    msg.className = isImage ? "bot-img" : cls;
-    if (isImage) { msg.src = text; msg.onclick = () => window.open(text); }
-    else { msg.innerText = text; }
+function addMessage(text, cls) {
+    let msg = document.createElement("p");
+    msg.className = cls;
+    msg.innerText = text;
     chat.appendChild(msg);
     chat.scrollTop = chat.scrollHeight;
 }
 
 function speak(text) {
-    window.speechSynthesis.cancel();
     let speech = new SpeechSynthesisUtterance(text);
     speech.lang = "hi-IN";
     window.speechSynthesis.speak(speech);
 }
 
-async function getReply(message) {
+function getReply(message) {
     message = message.toLowerCase().trim();
 
-    // Features: Image, Battery, Location, Math, Search
-    if (message.includes("photo") || message.includes("generate")) {
-        let p = message.replace("photo","").replace("generate","").trim() || "AI Art";
-        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(p)}?nologo=true`;
-        addMessage(`Theek hai Sia, ${p} bana rahi hoon...`, "bot");
-        addMessage(url, "bot", true);
-        return "Ye rahi aapki image!";
-    }
-
-    if (message.includes("battery")) {
-        const b = await navigator.getBattery();
-        return `Aapki battery ${Math.round(b.level * 100)}% hai.`;
-    }
-
-    if (message.includes("location")) {
-        return new Promise(res => navigator.geolocation.getCurrentPosition(p => 
-            res(`Aap Lat: ${p.coords.latitude.toFixed(2)} par hain.`)));
-    }
-
+    // Direct Website Shortcuts
     for (let key in assistantData) {
-        if (message.includes("open " + key)) { window.open(assistantData[key]); return key + " khol rahi hoon."; }
+        if (message === key || message.includes("open " + key)) {
+            window.open(assistantData[key]);
+            return key.toUpperCase() + " khol rahi hoon.";
+        }
     }
 
-    if (message.includes("hi") || message.includes("hello")) return "Hello Sia! Main taiyaar hoon.";
-    if (message.includes("time")) return "Abhi " + new Date().toLocaleTimeString() + " ho rahe hain.";
+    // Greetings
+    if (message.includes("hi") || message.includes("hello") || message.includes("नमस्ते")) return "नमस्ते! मैं Sia AI Assistant हूँ।";
+    if (message.includes("suprabhat") || message.includes("good morning")) return "Suprabhat! Aapka din mangalmay ho.";
 
-    return "Maaf kijiye, main ye samajh nahi paayi. Kya main Google search karoon?";
+    // Math Logic
+    if (/[0-9]/.test(message) && (message.includes("+") || message.includes("-") || message.includes("*") || message.includes("/"))) {
+        try {
+            let calc = message.replace(/[^-()\d/*+.]/g, ''); 
+            return "Iska jawab hai: " + eval(calc);
+        } catch (e) { return "Math thoda mushkil hai, firse puchiye."; }
+    }
+
+    // Search Logic (Maps/Google)
+    if (message.includes("map") || message.includes("rasta")) {
+        let place = message.replace("map", "").replace("rasta", "").replace("dikhao", "").trim();
+        window.open(`https://www.google.com/maps/search/${place}`);
+        return place ? place + " ka rasta dikha rahi hoon." : "Google Maps khol rahi hoon.";
+    }
+
+    if (message.includes("search") || message.includes("google")) {
+        let query = message.replace("search", "").replace("google", "").trim();
+        window.open("https://www.google.com/search?q=" + query);
+        return "Google par search kar rahi hoon: " + query;
+    }
+
+    if (message.includes("समय") || message.includes("time")) {
+        return "अभी समय है " + new Date().toLocaleTimeString();
+    }
+
+    return "Maaf kijiye, main ye samajh nahi paaya. Kya aap kuch aur puchna chahenge?";
 }
 
-async function sendMessage() {
-    let text = inputField.value.trim();
-    if (!text) return;
-    addMessage(text, "user");
-    inputField.value = "";
-    let reply = await getReply(text);
-    if(reply) { setTimeout(() => { addMessage(reply, "bot"); speak(reply); }, 600); }
+function sendMessage() {
+    let input = document.getElementById("input");
+    let text = input.value.trim();
+    if (text !== "") {
+        addMessage(text, "user");
+        let reply = getReply(text);
+        setTimeout(() => { 
+            addMessage(reply, "bot"); 
+            speak(reply); 
+        }, 500);
+        input.value = "";
+    }
 }
-
-function handleEnter(e) { if (e.key === "Enter") sendMessage(); }
 
 function startVoice() {
-    if (!SpeechRecognition) return alert("Browser support nahi karta.");
-    const rec = new SpeechRecognition();
-    rec.lang = "hi-IN";
-    rec.onstart = () => voiceBtn.style.background = "red";
-    rec.onresult = (e) => { inputField.value = e.results[0][0].transcript; sendMessage(); };
-    rec.onend = () => voiceBtn.style.background = "#10b981";
-    rec.start();
-}
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        addMessage("Browser voice support nahi karta.", "bot");
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "hi-IN";
+    const voiceBtn = document.getElementById("voice-btn");
+
+    recognition.onstart = () => {
+        if(voiceBtn) voiceBtn.style.backgroundColor = "red";
+    };
+
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById("input").value = transcript;
+        sendMessage();
+    };
+
+    recognition.onerror = () => {
